@@ -244,7 +244,9 @@ flowchart LR
 ## Guides and sources
 
 - [docs/CLUSTER_GUIDE_GENERAL_DE.md](docs/CLUSTER_GUIDE_GENERAL_DE.md) (general HPC + AI cluster guide used for embeddings)
-- [docs/YourAI_Manual_extracted.txt](docs/YourAI_Manual_extracted.txt) (yourAI manual text extract from a scan)
+- [https://ood.yai.hsbi.de/public/yai_user-manual.pdf](https://ood.yai.hsbi.de/public/yai_user-manual.pdf)
+  (yourAI cluster manual; requires active VPN or HSBI network access; also used as a starting point for
+  embeddings during live demo runs)
 
 ## Placeholders used in docs
 
