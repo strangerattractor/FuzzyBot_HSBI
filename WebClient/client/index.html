@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FuzzyBot_Help.Me</title>
+
+  <!-- simple-keyboard CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/css/index.css"
+  />
+
+  <!-- Your styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="idle-progress" aria-hidden="true"></div>
+  <div id="intro-overlay" class="intro-overlay" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+    <div class="intro-card">
+      <h1 id="intro-title">FuzzyBot_Help.Me - A live Chatbot</h1>
+      <p>
+        FuzzyBot_Help.Me zeigt, wie das KI-Cluster der Hochschule Bielefeld kreativ genutzt werden kann.
+      </p>
+      <p>
+        Dieser Prototyp-Chatbot demonstriert den Einsatz offener Sprachmodelle im Gestaltungsbereich und macht
+        technische Abl&auml;ufe sichtbar.
+      </p>
+      <p><strong>Kurzinfo:</strong></p>
+      <ul class="intro-list">
+        <li>Basierend auf dem leichten Open-Source-Modell Apertus-8B</li>
+        <li>Ideal f&uuml;r Lehre &amp; Experimente, aber nicht das &quot;intelligenteste&quot; Modell.</li>
+        <li>
+          Antworten k&ouml;nnen gelegentlich etwas l&auml;nger dauern, da der Chatbot alle Nutzer*Innenanfragen
+          nacheinander abarbeitet.
+        </li>
+        <li>
+          Bei <strong>aktiver VPN-Verbindung</strong> mit dem HSBI-Netzwerk kann der Chatbot 'Fuzzybot_Help.Me' auch hier
+          besucht werden: <strong>https://fuzzybot.yai.hsbi.de/</strong>
+        </li>
+      </ul>
+      <button id="intro-continue" type="button">Jetzt starten</button>
+    </div>
+  </div>
+
+  <div id="layout">
+    <div id="split-container">
+      <!-- TOP ROW: 2 panes (Payload / RAG) -->
+      <div id="top-row">
+        <div class="pane pane-top" id="pane-request">
+          <div class="pane-title">Ausgehende Anfrage (mit Verlauf)</div>
+          <pre id="request-console" class="console">// Vorschau der gesendeten Anfrage erscheint hier, sobald du die erste Nachricht schickst.</pre>
+        </div>
+        <div class="pane pane-top" id="pane-rag">
+          <div class="pane-title">GEFUNDENER RAG-KONTEXT</div>
+          <pre id="rag-console" class="console">// Abgerufener RAG-Kontext (Top-k Abschnitte + Nutzerfrage) wird hier angezeigt.</pre>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW: Chat -->
+      <div class="pane pane-bottom" id="pane-chat">
+        <div class="pane-title">Chat-Verlauf</div>
+
+        <!-- Console-style chat area (unchanged behavior) -->
+        <div id="terminal" class="console" tabindex="0">
+          <!-- Populated by app.js on load -->
+        </div>
+
+        <div id="input-row">
+          <button id="kb-toggle" type="button">&#9000; CHAT &#9000;</button>
+          <button id="reset-button" type="button">RESET</button>
+        </div>
+      </div>
+
+      <div id="keyboard-panel" aria-hidden="true">
+        <div class="keyboard-body">
+          <div id="simple-keyboard" class="simple-keyboard"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="about-pane" class="pane about-pane">
+      <div class="pane-title">About</div>
+      <div class="console about-body">
+        <p><strong>FuzzyBot_Help.Me</strong> ist eine Demo f&uuml;r einen m&ouml;glichen Chatbot auf dem HSBI-Cluster. Er nutzt das Apertus-Modell und reichert Antworten per RAG mit Cluster-Wissen an.</p>
+        <p><strong>Was ist RAG?</strong> Retrieval-Augmented Generation holt passende Texte aus Wissensquellen und legt sie dem Modell als Kontext bei, damit Antworten genauer und aktueller werden.</p>
+        <p>Du stellst eine Frage, der Bot erg&auml;nzt passende Cluster-Dokumente und streamt eine kurze Antwort zur&uuml;ck.</p>
+        <br>
+        <p><strong>Ablauf einer Chatbot-Anfrage:</strong></p>
+        <ol class="about-steps">
+          <li class="about-step" data-step="1">Du tippst deine Frage im Chat.</li>
+          <li class="about-step" data-step="2">Deine Frage + der bisherige Chatverlauf (Kontext) wird an den Chat-Server geschickt.</li>
+          <li class="about-step" data-step="3">Der Chat-Server sucht per RAG passende Cluster-Dokumente.</li>
+          <li class="about-step" data-step="4">Das Modell antwortet auf Basis deiner Frage, des bisherigen Chat-Kontexts und des RAG-Kontexts und streamt die Antwort.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- simple-keyboard JS -->
+  <script src="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/index.js"></script>
+
+  <!-- Your app logic -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,571 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: #f0f0f0;
+  font-family: Consolas, "Lucida Console", monospace;
+  height: 100vh;
+  overflow: hidden; /* prevent page-level scrollbar; inner areas scroll */
+}
+
+#idle-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #00cc66, #009944);
+  transform-origin: left;
+  z-index: 1200;
+  pointer-events: none;
+}
+
+/* Uniform scrollbar styling */
+body,
+.console,
+#keyboard-panel {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #0a0a0a;
+}
+
+body::-webkit-scrollbar,
+.console::-webkit-scrollbar,
+#keyboard-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-track,
+.console::-webkit-scrollbar-track,
+#keyboard-panel::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+body::-webkit-scrollbar-thumb,
+.console::-webkit-scrollbar-thumb,
+#keyboard-panel::-webkit-scrollbar-thumb {
+  background: #333;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+.console::-webkit-scrollbar-thumb:hover,
+#keyboard-panel::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Overall layout: main area + right sidebar */
+#layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr; /* 75% main, 25% about */
+  height: 100vh;
+}
+
+/* Outer: vertical split (top / bottom) */
+#split-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Top row: 2 columns (payload / RAG) */
+#top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1 1 50%;
+  min-height: 0;
+  border-bottom: 1px solid #333;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #555;
+  min-height: 0;
+  transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+.pane-bottom {
+  flex: 1 1 50%;
+  border-bottom: 2px solid #555;
+}
+
+.pane-title {
+  padding: 0.35rem 0.75rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  background: #1a1115; /* slight pink tint for headers */
+  border-bottom: 2px solid #555;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 0 0 auto;
+}
+
+.pane-top:first-child {
+  border-right: 2px solid #555;
+}
+
+.pane.highlight-panel {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #fff;
+}
+
+.pane.highlight-panel .pane-title {
+  background: #f0f0f0;
+  color: #000;
+  border-color: #fff;
+}
+
+.about-pane {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid #555;
+  background: rgba(255, 105, 180, 0.1); /* subtle pink tint */
+}
+
+.about-pane .pane-title {
+  background: rgba(255, 105, 180, 0.1); /* match body tint */
+}
+
+.about-body {
+  flex: 1 1 auto;
+  padding: 0.75rem;
+  overflow-y: auto;
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.about-body p {
+  margin: 0 0 0.25rem;
+}
+
+.about-body ol {
+  margin: 0.1rem 0 0.3rem 1.25rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: about-steps;
+}
+
+.about-body li {
+  margin-bottom: 0.1rem;
+}
+
+.about-body p:first-child {
+  margin-top: 0;
+}
+
+.about-step {
+  position: relative;
+  padding: 0.05rem 0.25rem 0.05rem 2rem;
+  border-radius: 0;
+  color: inherit;
+  line-height: 1.3;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+.about-step::before {
+  counter-increment: about-steps;
+  content: counter(about-steps) ".";
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  width: 1.5rem;
+  text-align: right;
+  color: currentColor;
+  font-variant-numeric: tabular-nums;
+}
+
+.about-step.highlight-step {
+  background: #f0f0f0;
+  color: #000;
+}
+
+/* Terminal / consoles */
+.console {
+  box-sizing: border-box;
+  padding: 0.5rem;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin: 0;
+  font-size: 1.1rem; /* bumped up for slightly larger console text */
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  caret-color: transparent;
+  min-height: 0;
+}
+
+#request-console,
+#rag-console {
+  background: #000;
+  color: #808080; /* 50% white to indicate read-only */
+}
+
+.line {
+  white-space: pre-wrap;
+}
+
+.spacer-line {
+  line-height: 1.2;
+}
+
+/* Prompt caret: block-style like a console cursor */
+#prompt {
+  position: relative;
+  display: inline-block;
+  padding-right: 0.1ch; /* keeps caret flush to text without overlap */
+}
+
+#prompt::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 0.02em;
+  width: 0.7ch;
+  height: 1.05em;
+  background: #f0f0f0;
+  border-radius: 1px;
+  animation: block-blink 1s steps(1) infinite;
+}
+
+#prompt.waiting::after {
+  content: "";
+  animation: none;
+  opacity: 0;
+}
+
+#prompt.input-blocked {
+  color: transparent;
+}
+
+#prompt.input-blocked::after {
+  background: transparent;
+}
+
+@keyframes block-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Highlight for query tokens in RAG chunks */
+.rag-highlight {
+  background: #003300;
+  color: #ccffcc;
+  text-decoration: underline;
+}
+
+/* Model output in dark green */
+.model-line {
+  color: #ffe600;
+}
+
+.error-line {
+  color: #ff4d4f;
+}
+
+.intro-line {
+  color: #ffe600;
+}
+
+/* Row under the chat console */
+#input-row {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  padding: 0.5rem 0.5rem 0.75rem;
+  border-top: 1px solid #333;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+#kb-toggle {
+  width: 25%;
+  min-width: 8rem;
+  padding: 0.65rem 1rem;
+  background: #222;
+  color: #f0f0f0;
+  border: 1px solid #555;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+#kb-toggle.chat-cta {
+  animation: kb-cta 2s ease-in-out infinite;
+}
+
+#kb-toggle.hidden-during-stream {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes kb-cta {
+  0% {
+    background: #222;
+    color: #f0f0f0;
+    border-color: #555;
+  }
+  50% {
+    background: #f0f0f0;
+    color: #000;
+    border-color: #aaa;
+  }
+  100% {
+    background: #222;
+    color: #f0f0f0;
+    border-color: #555;
+  }
+}
+
+#kb-toggle:hover,
+#kb-toggle:focus-visible {
+  background: #333;
+  border-color: #888;
+  outline: none;
+}
+
+body.keyboard-visible #kb-toggle {
+  background: #f0f0f0;
+  color: #000;
+  border-color: #aaa;
+}
+
+#reset-button {
+  position: absolute;
+  left: 0.5rem;
+  width: auto;
+  min-width: 0;
+  padding: 0.65rem 1rem; /* match CHAT height */
+  background: #111;
+  color: #f0f0f0;
+  border: 1px solid #555;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+#reset-button:hover,
+#reset-button:focus-visible {
+  background: #222;
+  border-color: #888;
+  outline: none;
+}
+
+#keyboard-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 0;
+  max-height: 0;
+  height: 0;
+  overflow: hidden;
+  background: #0a0a0a;
+  border-top: 2px solid #555;
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease,
+    max-height 0.3s ease,
+    height 0.3s ease,
+    flex-basis 0.3s ease;
+}
+
+body.keyboard-visible #keyboard-panel {
+  flex: 0 0 33vh;
+  max-height: 33vh;
+  height: 33vh;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  border-top: 2px solid #555;
+}
+
+#keyboard-panel .pane-title {
+  flex: 0 0 auto;
+}
+
+.keyboard-body {
+  flex: 1 1 auto;
+  padding: 0.5rem;
+  background: #111;
+  color: #ccc;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  font-size: 0.95rem;
+  border-top: 1px solid #222;
+}
+
+/* simple-keyboard overrides for dark theme */
+#simple-keyboard {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.hg-theme-default {
+  background: #111;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.hg-row .hg-button {
+  background: #222;
+  color: #f0f0f0;
+  border: 1px solid #333;
+}
+
+.hg-button:active,
+.hg-button.hg-activeButton {
+  background: #333;
+}
+
+/* Highlight send key in green (aligns with existing model text color) */
+.simple-keyboard .hg-button.hg-send {
+  background: #00aa00;
+  border-color: #00aa00;
+  color: #000;
+}
+
+.simple-keyboard .hg-button.hg-send:hover,
+.simple-keyboard .hg-button.hg-send:focus-visible,
+.simple-keyboard .hg-button.hg-send.hg-activeButton,
+.simple-keyboard .hg-button.hg-send:active {
+  background: #00cc00;
+  border-color: #00cc00;
+  color: #000;
+}
+
+/* Narrower space bar */
+.simple-keyboard .hg-button.hg-space {
+  flex: 0 0 80%;
+  max-width: 80%;
+}
+
+/* Intro overlay */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.67);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  z-index: 1000;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+@supports (backdrop-filter: blur(4px)) {
+  .intro-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+.intro-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.intro-card {
+  width: min(840px, 94vw);
+  max-height: 82vh;
+  overflow-y: auto;
+  background: #0a0a0a;
+  border: 1px solid #444;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+  padding: 2rem 2.25rem;
+  color: #f0f0f0;
+  will-change: transform, opacity;
+}
+
+.intro-card h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.6rem;
+}
+
+.intro-card p {
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+  color: #ddd;
+}
+
+.intro-list {
+  margin: 0 0 1rem 1.25rem;
+  padding-left: 0.5rem;
+  line-height: 1.5;
+  color: #ddd;
+}
+
+.intro-list li {
+  margin: 0 0 0.35rem;
+}
+
+#intro-continue {
+  margin-top: 1.25rem;
+  background: #00aa00;
+  color: #000;
+  border: 1px solid #00aa00;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+#intro-continue:hover,
+#intro-continue:focus-visible {
+  background: #00cc00;
+  border-color: #00cc00;
+  outline: none;
+}
+
+.intro-card.intro-exit {
+  animation: intro-drift-fade 0.9s ease forwards;
+}
+
+.intro-overlay.intro-exit {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease 0.5s, visibility 0.4s ease 0.5s;
+}
+
+@keyframes intro-drift-fade {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(32vh);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(40vh);
+    opacity: 0;
+  }
+}

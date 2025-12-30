@@ -1,0 +1,2 @@
+# Proxy-only deps for the client VM
+requests==2.32.5

@@ -1,0 +1,48 @@
+NODE=${NODE:-cpnXXX}
+salloc -A slrm-acc_gpu-level-g3x --qos=qos_slrm-acc_gpu-level-g3x -p gpu-computing -w "$NODE" --ntasks=1 --cpus-per-task=8 --mem=64G --gres=gpu:a100:1 --time=04:00:00
+
+srun --jobid=$SLURM_JOB_ID --overlap --pty bash -l
+
+source "$HOME/miniconda3/etc/profile.d/conda.sh"
+conda activate vllm-env
+which vllm 
+
+
+source "$HOME/miniconda3/etc/profile.d/conda.sh"
+conda activate vllm-env
+
+cd "$HOME/bin"
+./boot_apertus_8b.sh
+
+
+
+
+#THEN LOCALLY
+ cd "C:\Max Synology Drive\Projects2025\HSBI_ClusterStuff\Chatbot"
+
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1
+
+setx CHAT_DEBUG_LEVEL "2"
+$env:CHAT_DEBUG_LEVEL = "2"
+python .\chat_cli_stream_rag_debug.py
+
+
+## 2 GPUs!############################<
+salloc -A slrm-acc_gpu-level-g5v --qos=qos_slrm-acc_gpu-level-g5v -p gpu-computing -w cpnXXX -N 1 --ntasks=1 --cpus-per-task=60 --mem=500G --gres=gpu:a100:2 --time=24:00:00
+
+# 0) Load conda
+source "$HOME/miniconda3/etc/profile.d/conda.sh"
+
+# 1) Activate apertus env
+conda activate apertus-env
+
+# 2) (optional) confirm we see 2 GPUs
+python - << 'EOF'
+import torch
+print("GPU count:", torch.cuda.device_count())
+EOF
+
+# 3) Start the server
+cd "$HOME/bin"   # or wherever ServeApertusOn2Gpus.py lives
+python ServeApertusOn2Gpus.py

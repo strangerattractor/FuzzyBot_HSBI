@@ -1,0 +1,16 @@
+# models / data / db
+Models/*
+!Models/README.md
+LLM_Server/rag/db/
+Embeddings_Creator/data/raw/
+Embeddings_Creator/data/processed/
+Embeddings_Creator/output/
+
+# logs / caches
+*.log
+*.out
+*.err
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.cache/
